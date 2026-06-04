@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard – Home{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ---------- Dashboard Layout ---------- */
+    .dashboard {
+        animation: fadeSlideIn 0.5s ease;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    @keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Summary cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+    }
+    .bg-blue { background: var(--primary); }
+    .bg-green { background: #2ecc71; }
+    .bg-orange { background: #f39c12; }
+    .bg-red { background: #e74c3c; }
+
+    .stat-info h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+    .stat-info p {
+        margin: 0;
+        color: var(--bottom-text);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Chart cards */
+    .charts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    .chart-card {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+    }
+    .chart-card h5 {
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    /* Task table */
+    .task-table-card {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+    }
+    .task-table-card h5 {
+        font-weight: 600;
+        color: var(--text);
+    }
+    .table {
+        color: var(--text);
+        margin-bottom: 0;
+    }
+    .table th {
+        border-top: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--bottom-text);
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    /* Modal adjusts to theme */
+    .modal-content {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--bottom-border);
+    }
+    .modal-header, .modal-footer {
+        border-color: var(--bottom-border);
+    }
+    .form-control, .form-select {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--bottom-border);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb, 90,169,230), 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Summary Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue"><i class="fas fa-list-ul"></i></div>
+            <div class="stat-info">
+                <h3 id="totalTasks">0</h3>
+                <p>Total Tasks</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3 id="completedTasks">0</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-orange"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <h3 id="pendingTasks">0</h3>
+                <p>Pending</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-red"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-info">
+                <h3 id="overdueTasks">0</h3>
+                <p>Overdue</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+        <div class="chart-card">
+            <h5><i class="fas fa-chart-pie"></i> Status Distribution</h5>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h5><i class="fas fa-chart-bar"></i> Tasks Created (Last 7 days)</h5>
+            <canvas id="dailyChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h5><i class="fas fa-tags"></i> Priority Breakdown</h5>
+            <canvas id="priorityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // ---------- API Endpoints (updated) ----------
+    const STATUS_URL = "{% url 'api-stats-status' %}";
+    const DAILY_URL = "{% url 'api-stats-daily' %}";
+    const PRIORITY_URL = "{% url 'api-stats-priority' %}";
+    const TASKS_URL = "{% url 'task-list-create' %}";          // GET list + POST create
+    const TASK_DETAIL_BASE = "{% url 'task-detail' 0 %}".replace('0/', '');  // e.g., "/api/tasks/"
+
+    // ---------- Fetch & update summary counts ----------
+    async function updateSummary() {
+        try {
+            const [statusRes, tasksRes] = await Promise.all([
+                fetch(STATUS_URL).then(r => r.json()),
+                fetch(TASKS_URL).then(r => r.json())
+            ]);
+
+            const statusData = statusRes.data;       // array: pending, in_progress, done
+            const total = statusData.reduce((a, b) => a + b, 0);
+            const doneIdx = statusRes.labels.indexOf('Done');
+            const done = doneIdx >= 0 ? statusData[doneIdx] : 0;
+            const pending = total - done;
+
+            const now = new Date();
+            const overdueCount = tasksRes.filter(t =>
+                t.due_date && new Date(t.due_date) < now && t.status !== 'done'
+            ).length;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('completedTasks').textContent = done;
+            document.getElementById('pendingTasks').textContent = pending;
+            document.getElementById('overdueTasks').textContent = overdueCount;
+        } catch (err) {
+            console.error('Failed to load summary', err);
+        }
+    }
+
+
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ---------- Charts ----------
+    async function renderCharts() {
+        try {
+            const [statusData, dailyData, priorityData] = await Promise.all([
+                fetch(STATUS_URL).then(r => r.json()),
+                fetch(DAILY_URL).then(r => r.json()),
+                fetch(PRIORITY_URL).then(r => r.json())
+            ]);
+
+            // Status doughnut
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: statusData.labels,
+                    datasets: [{
+                        data: statusData.data,
+                        backgroundColor: ['#f1c40f', '#3498db', '#2ecc71'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+                    }
+                }
+            });
+
+            // Daily bar
+            new Chart(document.getElementById('dailyChart'), {
+                type: 'bar',
+                data: {
+                    labels: dailyData.labels,
+                    datasets: [{
+                        label: 'Tasks Created',
+                        data: dailyData.data,
+                        backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                        borderColor: '#4e73df',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+                    }
+                }
+            });
+
+            // Priority doughnut
+            new Chart(document.getElementById('priorityChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: priorityData.labels,
+                    datasets: [{
+                        data: priorityData.data,
+                        backgroundColor: ['#1abc9c', '#f39c12', '#e74c3c'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Chart loading error', err);
+        }
+    }
+
+
+
+    
+
+ 
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSummary();
+        renderCharts();
+    });
+</script>
+{% endblock %}

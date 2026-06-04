@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enterprise Workspace — Calendar Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --app-font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        font-family: var(--app-font);
+        min-height: 100vh;
+        padding-bottom: 120px; /* Space for the floating pill bottom bar */
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .calendar-workspace {
+        display: flex;
+        gap: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+
+    /* Left Control Panel / Sidebar */
+    .calendar-sidebar {
+        width: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .info-card h3 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Main Calendar Interface Card */
+    .calendar-main-card {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Calendar Toolbar Navigation */
+    .calendar-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .calendar-title-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .calendar-view-title {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .nav-btn-group {
+        display: flex;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 2px;
+    }
+
+    .calendar-nav-btn {
+        background: transparent;
+        border: none;
+        color: var(--text);
+        padding: 8px 14px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .calendar-nav-btn:hover {
+        background: var(--surface-hover);
+        color: var(--primary);
+    }
+
+    .today-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .today-btn:hover {
+        background: var(--surface-hover);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Grid Framework Infrastructure */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        flex: 1;
+    }
+
+    .weekday-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .calendar-cell {
+        min-height: 110px;
+        border-bottom: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        padding: 6px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        transition: background-color 0.15s;
+    }
+
+    /* Grid bounds safety mechanics */
+    .calendar-grid .calendar-cell:nth-child(7n) { border-right: none; }
+    .calendar-grid .calendar-cell:nth-last-child(-n+7) { border-bottom: none; }
+
+    .calendar-cell:hover {
+        background: var(--surface-hover);
+    }
+
+    .cell-number {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .calendar-cell.other-month {
+        opacity: 0.35;
+    }
+
+    .calendar-cell.is-today .cell-number {
+        background: var(--primary);
+        color: #ffffff !important;
+    }
+
+    /* Streamlined Task Node Chips */
+    .calendar-task-item {
+        font-size: 11px;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: transform 0.1s ease;
+    }
+
+    .calendar-task-item:hover {
+        transform: translateX(2px);
+    }
+
+    /* High-contrast Enterprise Priority Coding System */
+    .task-prio-high { background: #FDE8E8; color: #9C1A1A; border-left: 3px solid #E02424; }
+    .task-prio-medium { background: #FEF3C7; color: #92400E; border-left: 3px solid #D97706; }
+    .task-prio-low { background: #E1EFFE; color: #1E429F; border-left: 3px solid #3B82F6; }
+
+    /* Dark Mode Theme Adjustment Blocks */
+    .theme-midnight-peace .task-prio-high { background: #4C1D1D; color: #FCA5A5; }
+    .theme-midnight-peace .task-prio-medium { background: #451A03; color: #FCD34D; }
+    .theme-midnight-peace .task-prio-low { background: #1E3A8A; color: #93C5FD; }
+
+    /* Upcoming Stream Entries */
+    .upcoming-stream {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .stream-item {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .stream-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-workspace">
+    
+    <div class="calendar-sidebar">
+        <div class="info-card">
+            <h3><i class="fas fa-circle-info" style="color: var(--primary);"></i> Calendar Guide</h3>
+            <p style="font-size: 13px; line-height: 1.5; color: var(--text-muted); margin: 0;">
+                This schedule workspace displays production tasks linked directly to cloud deadlines. Click any system chip to step directly into its rich multi-page word workspace.
+            </p>
+        </div>
+        
+        <div class="info-card">
+            <h3><i class="far fa-clock" style="color: var(--primary);"></i> Critical Deadlines</h3>
+            <div class="upcoming-stream" id="upcomingStreamContainer">
+                <p style="font-size: 12px; color:var(--text-muted);">Scanning workspace parameters...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-main-card">
+        <div class="calendar-toolbar">
+            <div class="calendar-title-group">
+                <h2 class="calendar-view-title" id="currentMonthYearLabel">Month view</h2>
+                <button class="today-btn" onclick="setToCurrentDateRoute()">Today</button>
+            </div>
+            <div class="nav-btn-group">
+                <button class="calendar-nav-btn" onclick="stepCalendarPeriod(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="calendar-nav-btn" onclick="stepCalendarPeriod(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="calendar-grid" style="border-bottom: none;">
+            <div class="weekday-header">Sun</div>
+            <div class="weekday-header">Mon</div>
+            <div class="weekday-header">Tue</div>
+            <div class="weekday-header">Wed</div>
+            <div class="weekday-header">Thu</div>
+            <div class="weekday-header">Fri</div>
+            <div class="weekday-header">Sat</div>
+        </div>
+
+        <div class="calendar-grid" id="calendarDaysGridBox" style="border-left: 1px solid var(--border); border-top: 1px solid var(--border);"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // 1. Instantly resolve visual synchronization with selected user theme
+    (function syncContextTheme() {
+        const activeThemeClassStr = localStorage.getItem('selectedTheme') || '';
+        if (activeThemeClassStr) {
+            document.body.classList.add(activeThemeClassStr);
+        }
+    })();
+
+    // 2. State engine initialization tracking parameters
+    let systemDatePivot = new Date();
+    let globallySynchronizedTasks = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        executeCloudTaskDataFetch();
+    });
+
+    async function executeCloudTaskDataFetch() {
+        try {
+            const apiResponse = await fetch('/api/tasks/');
+            if (!apiResponse.ok) throw new Error("Synchronization link error response");
+            globallySynchronizedTasks = await apiResponse.json();
+            
+            renderInteractiveCalendarGrid();
+            populateUpcomingStreamPanel();
+        } catch(error) {
+            console.error("Task Engine Context Fetch Interruption: ", error);
+            document.getElementById('calendarDaysGridBox').innerHTML = `<div style="padding:24px; color:red;">Failed to resolve dynamic workspace pipeline links.</div>`;
+        }
+    }
+
+    function renderInteractiveCalendarGrid() {
+        const daysContainerBox = document.getElementById('calendarDaysGridBox');
+        const monthYearLabel = document.getElementById('currentMonthYearLabel');
+        daysContainerBox.innerHTML = '';
+
+        const targetYear = systemDatePivot.getFullYear();
+        const targetMonth = systemDatePivot.getMonth();
+
+        // Format system string display header banner text
+        const optionsFormatter = { month: 'long', year: 'numeric' };
+        monthYearLabel.innerText = systemDatePivot.toLocaleDateString('en-US', optionsFormatter);
+
+        // Date processing matrix boundary setup
+        const firstDayOfMonthInstance = new Date(targetYear, targetMonth, 1);
+        const leadingOffsetPaddingDays = firstDayOfMonthInstance.getDay(); // 0 = Sunday, 1 = Monday etc.
+        
+        const totalDaysInCurrentMonthCount = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const totalDaysInPreviousMonthCount = new Date(targetYear, targetMonth, 0).getDate();
+
+        const standardTodayObject = new Date();
+
+        // Step A: Injection sequence handling trailing tail numbers of preceding months
+        for (let i = leadingOffsetPaddingDays - 1; i >= 0; i--) {
+            const calculatedDayNum = totalDaysInPreviousMonthCount - i;
+            const deadCellNode = createCalendarCellElementNode(calculatedDayNum, true, false);
+            daysContainerBox.appendChild(deadCellNode);
+        }
+
+        // Step B: Insertion sequence mapping the current active month space boundaries
+        for (let baseDayCounter = 1; baseDayCounter <= totalDaysInCurrentMonthCount; baseDayCounter++) {
+            const checkTodayFlag = (baseDayCounter === standardTodayObject.getDate() && 
+                                    targetMonth === standardTodayObject.getMonth() && 
+                                    targetYear === standardTodayObject.getFullYear());
+            
+            const activeCellNode = createCalendarCellElementNode(baseDayCounter, false, checkTodayFlag);
+            
+            // Map any tasks into this specific cell via timestamp data calculations
+            mapTasksToCalendarCell(activeCellNode, targetYear, targetMonth, baseDayCounter);
+            
+            daysContainerBox.appendChild(activeCellNode);
+        }
+
+        // Step C: Top-off padding logic to balance standard grid appearance boundaries (6 rows * 7 days = 42 blocks)
+        const activePopulatedCellsCount = leadingOffsetPaddingDays + totalDaysInCurrentMonthCount;
+        const trailingEmptyGridCellsRequired = 42 - activePopulatedCellsCount;
+        for (let remainderCounter = 1; remainderCounter <= trailingEmptyGridCellsRequired; remainderCounter++) {
+            const trailingCellNode = createCalendarCellElementNode(remainderCounter, true, false);
+            daysContainerBox.appendChild(trailingCellNode);
+        }
+    }
+
+    function createCalendarCellElementNode(displayDayNumber, isOtherMonthFlag, isCurrentTodayFlag) {
+        const baseCellDivNode = document.createElement('div');
+        baseCellDivNode.className = `calendar-cell ${isOtherMonthFlag ? 'other-month' : ''} ${isCurrentTodayFlag ? 'is-today' : ''}`;
+        
+        baseCellDivNode.innerHTML = `<span class="cell-number">${displayDayNumber}</span>`;
+        return baseCellDivNode;
+    }
+
+    function mapTasksToCalendarCell(cellDOMReference, currentYear, currentMonth, currentDay) {
+        // Run lookups against dynamic payload elements tracking specific year/month/day vectors
+        globallySynchronizedTasks.forEach(taskItem => {
+            if (!taskItem.due_date) return;
+
+            const structuredDeadlineDate = new Date(taskItem.due_date);
+            if (structuredDeadlineDate.getFullYear() === currentYear &&
+                structuredDeadlineDate.getMonth() === currentMonth &&
+                structuredDeadlineDate.getDate() === currentDay) {
+                
+                const elementChipNode = document.createElement('div');
+                elementChipNode.className = `calendar-task-item task-prio-${taskItem.priority || 'medium'}`;
+                elementChipNode.innerHTML = `<i class="far fa-file-lines"></i> ${taskItem.title}`;
+                
+                // Clicking direct navigation links routes system processing straight into the document view workspace
+                elementChipNode.onclick = (e) => {
+                    e.stopPropagation();
+                    window.location.href = `/page/${taskItem.id}/`;
+                };
+
+                cellDOMReference.appendChild(elementChipNode);
+            }
+        });
+    }
+
+    function populateUpcomingStreamPanel() {
+        const streamContainerBox = document.getElementById('upcomingStreamContainer');
+        streamContainerBox.innerHTML = '';
+
+        // Filter and sort tasks containing valid upcoming target vectors sorted sequentially
+        const priorityOrderingWeightMap = { 'high': 1, 'medium': 2, 'low': 3 };
+        const trackedFilteredList = globallySynchronizedTasks
+            .filter(t => t.due_date && new Date(t.due_date) >= new Date())
+            .sort((alpha, beta) => new Date(alpha.due_date) - new Date(beta.due_date));
+
+        if (trackedFilteredList.length === 0) {
+            streamContainerBox.innerHTML = `<p style="font-size:12px; color:var(--text-muted); margin:0;">No upcoming milestones found.</p>`;
+            return;
+        }
+
+        trackedFilteredList.slice(0, 5).forEach(task => {
+            const formattedTimeStr = new Date(task.due_date).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+            const streamItemNode = document.createElement('div');
+            streamItemNode.className = 'stream-item';
+            streamItemNode.style.cursor = 'pointer';
+            streamItemNode.onclick = () => window.location.href = `/page/${task.id}/`;
+            
+            streamItemNode.innerHTML = `
+                <div style="font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${task.title}</div>
+                <div class="stream-meta">
+                    <span style="text-transform: capitalize; font-weight:500;" class="text-prio-${task.priority}">${task.priority} Priority</span>
+                    <span><i class="far fa-calendar-check"></i> ${formattedTimeStr}</span>
+                </div>
+            `;
+            streamContainerBox.appendChild(streamItemNode);
+        });
+    }
+
+    // --- Interactive Toolbar Step Event Actions Handler Engine ---
+    function stepCalendarPeriod(directionModifierValue) {
+        systemDatePivot.setMonth(systemDatePivot.getMonth() + directionModifierValue);
+        renderInteractiveCalendarGrid();
+    }
+
+    function setToCurrentDateRoute() {
+        systemDatePivot = new Date();
+        renderInteractiveCalendarGrid();
+    }
+</script>
+{% endblock %}

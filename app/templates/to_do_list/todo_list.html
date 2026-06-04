@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}To‑Do List{% endblock %}
+
+{% block extra_head %}
+<style>
+    .todo-container {
+        max-width: 800px;
+        margin: 0 auto;
+        animation: fadeSlide 0.5s ease;
+    }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .todo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .counts {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+    .count-item span {
+        font-weight: 2000;
+        font-size: 1.2rem;
+        color: var(--primary);
+
+    }
+
+    .input-card {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+    }
+    .input-card .form-control,
+    .input-card .form-select {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--bottom-border);
+    }
+    .input-card .form-control:focus,
+    .input-card .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb, 90,169,230), 0.25);
+    }
+
+    .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+    .search-box {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
+    .search-box input {
+        padding-left: 2.2rem;
+    }
+    .search-box i {
+        position: absolute;
+        left: 0.8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--bottom-text);
+    }
+    .filter-btns {
+        display: flex;
+        gap: 0.4rem;
+    }
+    .filter-btn {
+        border: 1px solid var(--bottom-border);
+        background: var(--surface);
+        color: var(--text);
+        border-radius: 20px;
+        padding: 0.35rem 1rem;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    .task-list {
+        list-style: none;
+        padding: 0;
+    }
+    .task-item {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.3s ease, opacity 0.3s ease, background 0.2s;
+        animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .task-item.completed {
+        opacity: 0.6;
+    }
+    .task-item.completed .task-title {
+        text-decoration: line-through;
+    }
+    .task-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+    .task-checkbox {
+        width: 22px;
+        height: 22px;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+    .task-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .task-title {
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+        word-break: break-word;
+    }
+    .task-title a {
+        color: var(--text);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .task-title a:hover {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+    .task-desc {
+        font-size: 0.85rem;
+        color: var(--bottom-text);
+        margin-bottom: 0.3rem;
+    }
+    .task-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        font-size: 0.75rem;
+    }
+    .meta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--bg);
+        padding: 0.15rem 0.6rem;
+        border-radius: 12px;
+        color: var(--text);
+    }
+    .meta-badge.priority-high { background: #e74c3c; color: #fff; }
+    .meta-badge.priority-medium { background: #f39c12; color: #fff; }
+    .meta-badge.priority-low { background: #2ecc71; color: #fff; }
+    .meta-badge i { font-size: 0.8rem; }
+
+    .task-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .task-actions button {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.3rem 0.5rem;
+        border-radius: 6px;
+        color: var(--text);
+        transition: background 0.15s;
+    }
+    .task-actions button:hover {
+        background: rgba(0,0,0,0.05);
+    }
+    .task-actions .btn-edit:hover { color: var(--primary); }
+    .task-actions .btn-delete:hover { color: #e74c3c; }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--bottom-text);
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        opacity: 0.5;
+    }
+
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    .edit-form .row { margin: 0; }
+    .edit-form .btn { font-size: 0.8rem; }
+
+    #addTaskForm button[type="submit"]:disabled {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="todo-container">
+    <div class="todo-header">
+        <h2><i class="fas fa-tasks"></i> My Tasks</h2>
+        <div class="counts">
+            <div class="count-item"><span id="countCompleted">0</span> <i class="fa-solid fa-check"></i></div>
+            <div class="count-item"><span id="countPending">0</span> <i class="fa-solid fa-clock"></i></div>
+        </div>
+    </div>
+
+    <!-- Add Task Card -->
+    <div class="input-card">
+        <form id="addTaskForm">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="taskTitleInput" placeholder="Task title..." required>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="taskPriorityInput">
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100" id="addBtn">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-8">
+                    <textarea class="form-control" id="taskDescInput" rows="2" placeholder="Description (optional)"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <input type="datetime-local" class="form-control" id="taskDueInput">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search tasks...">
+        </div>
+        <div class="filter-btns">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+    </div>
+
+    <!-- Task List -->
+    <ul class="task-list" id="taskList"></ul>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ----- API endpoints (from Django URL names) -----
+    const TASKS_URL = "{% url 'task-list-create' %}";       // GET + POST
+    const TASK_DETAIL = (id) => `/api/tasks/${id}/`;        // PUT + DELETE (task-detail)
+
+    let allTasks = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    // ----- Load tasks -----
+    async function loadTasks() {
+        try {
+            const res = await fetch(TASKS_URL);
+            if (!res.ok) throw new Error('Network error');
+            allTasks = await res.json();
+            renderTasks();
+        } catch (err) {
+            console.error('Error loading tasks', err);
+        }
+    }
+
+    function getFilteredTasks() {
+        let tasks = [...allTasks];
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
+        }
+        if (currentFilter === 'active') {
+            tasks = tasks.filter(t => t.status !== 'done');
+        } else if (currentFilter === 'completed') {
+            tasks = tasks.filter(t => t.status === 'done');
+        }
+        return tasks;
+    }
+
+    function renderTasks() {
+        const filtered = getFilteredTasks();
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+
+        const completed = allTasks.filter(t => t.status === 'done').length;
+        const pending = allTasks.length - completed;
+        document.getElementById('countCompleted').textContent = completed;
+        document.getElementById('countPending').textContent = pending;
+
+        if (filtered.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>No tasks found. Add one above!</p>
+                </div>`;
+            return;
+        }
+
+        filtered.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `task-item ${task.status === 'done' ? 'completed' : ''}`;
+            li.id = `task-${task.id}`;
+            li.innerHTML = `
+                <input type="checkbox" class="task-checkbox" ${task.status === 'done' ? 'checked' : ''}
+                       onchange="toggleComplete(${task.id}, this.checked)">
+                <div class="task-content">
+                    <div class="task-title">
+                        <a href="/page/${task.id}/"><i class="fas fa-file-alt"></i> ${escapeHtml(task.title)}</a>
+                    </div>
+                    ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ''}
+                    <div class="task-meta">
+                        <span class="meta-badge priority-${task.priority}">
+                            <i class="fas fa-flag"></i> ${task.priority}
+                        </span>
+                        ${task.due_date ? `
+                        <span class="meta-badge">
+                            <i class="fas fa-calendar-alt"></i> ${new Date(task.due_date).toLocaleDateString('en-GB')}
+                        </span>` : ''}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="btn-edit" onclick="startEdit(${task.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-delete" onclick="deleteTask(${task.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ----- Add task -----
+    document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('taskTitleInput').value.trim();
+        if (!title) return;
+
+        const btn = document.getElementById('addBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        const data = {
+            title: title,
+            description: document.getElementById('taskDescInput').value.trim(),
+            status: 'pending',
+            priority: document.getElementById('taskPriorityInput').value,
+            due_date: document.getElementById('taskDueInput').value || null,
+        };
+
+        try {
+            const res = await fetch(TASKS_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data),
+            });
+            if (!res.ok) throw new Error('Creation failed');
+            document.getElementById('taskTitleInput').value = '';
+            document.getElementById('taskDescInput').value = '';
+            document.getElementById('taskDueInput').value = '';
+            await loadTasks();
+        } catch (err) {
+            console.error(err);
+            alert('Could not create task. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Add';
+        }
+    });
+
+    // ----- Toggle complete -----
+    async function toggleComplete(id, checked) {
+        const newStatus = checked ? 'done' : 'pending';
+        try {
+            const res = await fetch(TASK_DETAIL(id), {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (res.ok) {
+                const task = allTasks.find(t => t.id === id);
+                if (task) task.status = newStatus;
+                renderTasks();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // ----- Delete task -----
+    async function deleteTask(id) {
+        if (!confirm('Delete this task?')) return;
+        try {
+            const res = await fetch(TASK_DETAIL(id), { method: 'DELETE' });
+            if (res.ok) {
+                const element = document.getElementById(`task-${id}`);
+                if (element) {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateX(50px)';
+                    setTimeout(() => {
+                        allTasks = allTasks.filter(t => t.id !== id);
+                        renderTasks();
+                    }, 300);
+                } else {
+                    allTasks = allTasks.filter(t => t.id !== id);
+                    renderTasks();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // ----- Inline edit -----
+    async function startEdit(id) {
+        const li = document.getElementById(`task-${id}`);
+        if (!li) return;
+        const contentDiv = li.querySelector('.task-content');
+        const task = allTasks.find(t => t.id === id);
+        if (!task) return;
+
+        li.dataset.originalHTML = contentDiv.innerHTML;
+        contentDiv.innerHTML = `
+            <div class="edit-form">
+                <input type="text" class="form-control" id="editTitle-${id}" value="${escapeHtml(task.title)}" required>
+                <textarea class="form-control" id="editDesc-${id}" rows="2">${escapeHtml(task.description || '')}</textarea>
+                <div class="row g-2">
+                    <div class="col-sm-4">
+                        <select class="form-select" id="editPriority-${id}">
+                            <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
+                            <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                            <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="datetime-local" class="form-control" id="editDue-${id}" value="${task.due_date ? task.due_date.slice(0,16) : ''}">
+                    </div>
+                    <div class="col-sm-4">
+                        <button class="btn btn-primary btn-sm" onclick="saveEdit(${id})"><i class="fas fa-save"></i> Save</button>
+                        <button class="btn btn-secondary btn-sm" onclick="cancelEdit(${id})"><i class="fas fa-times"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async function saveEdit(id) {
+        const title = document.getElementById(`editTitle-${id}`).value.trim();
+        const desc = document.getElementById(`editDesc-${id}`).value.trim();
+        const priority = document.getElementById(`editPriority-${id}`).value;
+        const due_date = document.getElementById(`editDue-${id}`).value || null;
+        if (!title) return;
+
+        const data = { title, description: desc, priority, due_date };
+        try {
+            const res = await fetch(TASK_DETAIL(id), {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data),
+            });
+            if (res.ok) {
+                const task = allTasks.find(t => t.id === id);
+                if (task) {
+                    task.title = title;
+                    task.description = desc;
+                    task.priority = priority;
+                    task.due_date = due_date ? new Date(due_date).toISOString() : null;
+                }
+                renderTasks();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function cancelEdit(id) {
+        const li = document.getElementById(`task-${id}`);
+        if (li && li.dataset.originalHTML) {
+            li.querySelector('.task-content').innerHTML = li.dataset.originalHTML;
+        }
+    }
+
+    // ----- Filter / Search -----
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            renderTasks();
+        });
+    });
+
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchQuery = this.value.trim();
+            renderTasks();
+        }, 300);
+    });
+
+    document.addEventListener('DOMContentLoaded', loadTasks);
+</script>
+{% endblock %}
