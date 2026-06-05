@@ -317,7 +317,8 @@
         box-shadow: 0 24px 60px rgba(0,0,0,0.5);
         width: 1000px;
         max-width: 95vw;
-        max-height: 90vh;
+        max-height: 95vh;
+        overflow-y: auto;
         padding: var(--space-5);
         display: flex;
         flex-direction: column;
@@ -341,7 +342,7 @@
     .canvas-framework {
         border: 1px solid var(--glass-border);
         background: rgba(255,255,255,0.05);
-        min-height: 500px;
+        height: auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -593,6 +594,7 @@
                 </div>
             </div>
             <div>
+                <button class="btn btn-sm btn-outline-warning me-2" onclick="deleteSelectedCanvasObject()"><i class="fas fa-trash"></i> Delete Selected</button>
                 <button class="btn btn-sm btn-outline-danger me-2" onclick="clearActiveFabricCanvas()"><i class="fas fa-trash-can"></i> Reset</button>
                 <button class="btn btn-sm btn-primary" onclick="commitCanvasGraphicToDocument()"><i class="fas fa-file-import"></i> Embed into Document</button>
             </div>
@@ -946,13 +948,30 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'z') {
-            if (document.getElementById('drawModalWrapper').style.display === 'flex') {
+        if (document.getElementById('drawModalWrapper').style.display === 'flex') {
+            if (e.ctrlKey && e.key === 'z') {
                 undoCanvas();
                 e.preventDefault();
+            } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (globalFabricCanvasInstance && globalFabricCanvasInstance.getActiveObject() && globalFabricCanvasInstance.getActiveObject().isEditing) {
+                    return;
+                }
+                deleteSelectedCanvasObject();
             }
         }
     });
+
+    function deleteSelectedCanvasObject() {
+        if (!globalFabricCanvasInstance) return;
+        const activeObjects = globalFabricCanvasInstance.getActiveObjects();
+        if (activeObjects.length) {
+            globalFabricCanvasInstance.discardActiveObject();
+            activeObjects.forEach(function(object) {
+                globalFabricCanvasInstance.remove(object);
+            });
+            saveCanvasState();
+        }
+    }
 
     function openDrawingModal(preset = null) {
         document.getElementById('drawModalWrapper').style.display = 'flex';

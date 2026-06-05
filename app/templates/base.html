@@ -28,7 +28,7 @@
     </div>
 
     <!-- Centered Pill Bottom Navigation -->
-    <div class="bottom-bar">
+    <div class="bottom-bar" id="bottomNavBar">
         <!-- Home -->
         <a class="bar-icon {% if active_page == 'home' %}active{% endif %}"
            href="{% url 'home' %}">
@@ -74,5 +74,102 @@
     <script src="{% static 'js/style.js' %}"></script>
 
     {% block extra_scripts %}{% endblock %}
+
+    <!-- Draggable Bottom Bar Script -->
+    <script>
+        (function() {
+            const bar = document.getElementById('bottomNavBar');
+            if (!bar) return;
+
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+            let hasMoved = false;  // to distinguish click from drag
+
+            function getBarRect() {
+                const rect = bar.getBoundingClientRect();
+                return { left: rect.left, top: rect.top };
+            }
+
+            function onPointerDown(e) {
+                // Only allow dragging if the target is the bar itself (not a link/button)
+                const target = e.target;
+                if (target.closest('a, button')) {
+                    return;
+                }
+
+                e.preventDefault();
+                isDragging = true;
+                hasMoved = false;
+
+                const point = e.touches ? e.touches[0] : e;
+                startX = point.clientX;
+                startY = point.clientY;
+
+                const initial = getBarRect();
+                initialLeft = initial.left;
+                initialTop = initial.top;
+
+                // Remove transition and center offset while dragging
+                bar.style.transition = 'none';
+                bar.style.transform = 'none';
+                bar.style.left = initialLeft + 'px';
+                bar.style.top = initialTop + 'px';
+                bar.style.bottom = 'auto';
+                bar.setPointerCapture(e.pointerId || 0);
+                bar.style.cursor = 'grabbing';
+            }
+
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const point = e.touches ? e.touches[0] : e;
+                const dx = point.clientX - startX;
+                const dy = point.clientY - startY;
+
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                    hasMoved = true;
+                }
+
+                bar.style.left = (initialLeft + dx) + 'px';
+                bar.style.top = (initialTop + dy) + 'px';
+            }
+
+            function onPointerUp(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                bar.style.cursor = 'grab';
+
+                // Restore transition after dragging
+                setTimeout(() => {
+                    bar.style.transition = '';
+                }, 50);
+
+                // Prevent accidental link/button clicks after a drag
+                if (hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+
+            // Initial style
+            bar.style.cursor = 'grab';
+
+            // Attach events
+            bar.addEventListener('mousedown', onPointerDown);
+            bar.addEventListener('touchstart', onPointerDown, { passive: false });
+            document.addEventListener('mousemove', onPointerMove);
+            document.addEventListener('touchmove', onPointerMove, { passive: false });
+            document.addEventListener('mouseup', onPointerUp);
+            document.addEventListener('touchend', onPointerUp);
+
+            // Prevent default click actions on the bar when dragging ends
+            bar.addEventListener('click', function(e) {
+                if (hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+        })();
+    </script>
 </body>
 </html>
