@@ -5,331 +5,1378 @@
 
 {% block extra_head %}
 <style>
-    /* ---------- Dashboard Layout ---------- */
+    /* =========================================================
+       DASHBOARD
+       ========================================================= */
+
     .dashboard {
-        animation: fadeSlideIn 0.5s ease;
         max-width: 1400px;
         margin: 0 auto;
-    }
-    @keyframes fadeSlideIn {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
+        animation: dashboardEnter 0.45s ease;
     }
 
-    /* Summary cards */
+    @keyframes dashboardEnter {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .dashboard-title h1 {
+        margin: 0;
+        color: var(--text);
+        font-size: 1.8rem;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+    }
+
+    .dashboard-title p {
+        margin: 0.4rem 0 0;
+        color: var(--bottom-text);
+        font-size: 0.88rem;
+    }
+
+    .dashboard-date {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--bottom-border);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--bottom-text);
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* =========================================================
+       KPI CARDS
+       ========================================================= */
+
     .stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
+
     .stat-card {
+        position: relative;
+        overflow: hidden;
         background: var(--surface);
-        border-radius: 16px;
-        padding: 1.5rem;
+        border: 1px solid var(--bottom-border);
+        border-radius: 15px;
+        padding: 1.15rem;
+        box-shadow: var(--shadow);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(var(--primary-rgb, 90,169,230), 0.25);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+    }
+
+    .stat-card::after {
+        content: "";
+        position: absolute;
+        width: 95px;
+        height: 95px;
+        right: -35px;
+        bottom: -45px;
+        border-radius: 50%;
+        background: var(--primary);
+        opacity: 0.045;
+    }
+
+    .stat-top {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        box-shadow: var(--shadow);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        justify-content: space-between;
+        margin-bottom: 0.9rem;
     }
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+
+    .stat-label {
+        color: var(--bottom-text);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
     }
+
     .stat-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+
+    .bg-blue {
+        background: var(--primary);
+    }
+
+    .bg-green {
+        background: #2ecc71;
+    }
+
+    .bg-orange {
+        background: #f39c12;
+    }
+
+    .bg-red {
+        background: #e74c3c;
+    }
+
+    .stat-value {
+        margin: 0;
+        color: var(--text);
+        font-size: 1.75rem;
+        line-height: 1;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+    }
+
+    .stat-subtitle {
+        margin-top: 0.45rem;
+        color: var(--bottom-text);
+        font-size: 0.72rem;
+    }
+
+    /* =========================================================
+       ANALYTICS
+       ========================================================= */
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--bottom-border);
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 1.15rem;
+        min-width: 0;
+    }
+
+    .chart-status {
+        grid-column: span 4;
+    }
+
+    .chart-daily {
+        grid-column: span 8;
+    }
+
+    .chart-priority {
+        grid-column: span 5;
+    }
+
+    .chart-insight {
+        grid-column: span 7;
+    }
+
+    .chart-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .chart-header-left {
+        min-width: 0;
+    }
+
+    .chart-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        color: var(--text);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .chart-header h3 i {
+        color: var(--primary);
+        font-size: 0.85rem;
+    }
+
+    .chart-header p {
+        margin: 0.3rem 0 0;
+        color: var(--bottom-text);
+        font-size: 0.72rem;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: 250px;
+    }
+
+    .chart-wrapper.large {
+        height: 270px;
+    }
+
+    .chart-wrapper canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* =========================================================
+       INSIGHT CARD
+       ========================================================= */
+
+    .insight-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 250px;
+    }
+
+    .insight-main {
+        padding: 1rem;
+        border-radius: 12px;
+        background: var(--bg);
+        border: 1px solid var(--bottom-border);
+        margin-bottom: 0.75rem;
+    }
+
+    .insight-main-label {
+        color: var(--bottom-text);
+        font-size: 0.72rem;
+        font-weight: 650;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .insight-main-value {
+        margin: 0.35rem 0;
+        color: var(--text);
+        font-size: 1.6rem;
+        font-weight: 750;
+    }
+
+    .insight-main-text {
+        margin: 0;
+        color: var(--bottom-text);
+        font-size: 0.78rem;
+        line-height: 1.55;
+    }
+
+    .insight-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+    }
+
+    .insight-item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        background: var(--bg);
+        border: 1px solid var(--bottom-border);
+    }
+
+    .insight-item-icon {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        color: #fff;
-    }
-    .bg-blue { background: var(--primary); }
-    .bg-green { background: #2ecc71; }
-    .bg-orange { background: #f39c12; }
-    .bg-red { background: #e74c3c; }
-
-    .stat-info h3 {
-        margin: 0;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--text);
-    }
-    .stat-info p {
-        margin: 0;
-        color: var(--bottom-text);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* Chart cards */
-    .charts-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2rem;
-    }
-    .chart-card {
         background: var(--surface);
-        border-radius: 16px;
-        padding: 1.25rem;
-        box-shadow: var(--shadow);
-    }
-    .chart-card h5 {
-        margin-bottom: 1rem;
-        font-weight: 600;
-        color: var(--text);
-    }
-
-    /* Task table */
-    .task-table-card {
-        background: var(--surface);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-    }
-    .task-table-card h5 {
-        font-weight: 600;
-        color: var(--text);
-    }
-    .table {
-        color: var(--text);
-        margin-bottom: 0;
-    }
-    .table th {
-        border-top: none;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--bottom-text);
-    }
-    .table td {
-        vertical-align: middle;
-    }
-    .badge {
+        color: var(--primary);
         font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-    }
-    .btn-sm {
-        padding: 0.25rem 0.6rem;
-        font-size: 0.8rem;
     }
 
-    /* Modal adjusts to theme */
-    .modal-content {
-        background: var(--surface);
+    .insight-item strong {
+        display: block;
         color: var(--text);
-        border: 1px solid var(--bottom-border);
+        font-size: 0.78rem;
+        font-weight: 700;
     }
-    .modal-header, .modal-footer {
-        border-color: var(--bottom-border);
+
+    .insight-item span {
+        display: block;
+        margin-top: 0.15rem;
+        color: var(--bottom-text);
+        font-size: 0.68rem;
     }
-    .form-control, .form-select {
-        background: var(--bg);
-        color: var(--text);
-        border: 1px solid var(--bottom-border);
+
+    /* =========================================================
+       FOOTER INFO
+       ========================================================= */
+
+    .dashboard-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.9rem 0.15rem;
+        color: var(--bottom-text);
+        font-size: 0.72rem;
     }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb, 90,169,230), 0.25);
+
+    .dashboard-footer-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 1100px) {
+        .stats-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .chart-status,
+        .chart-daily,
+        .chart-priority,
+        .chart-insight {
+            grid-column: span 6;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .dashboard-title h1 {
+            font-size: 1.5rem;
+        }
+
+        .analytics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-status,
+        .chart-daily,
+        .chart-priority,
+        .chart-insight {
+            grid-column: span 1;
+        }
+
+        .chart-wrapper,
+        .chart-wrapper.large,
+        .insight-content {
+            min-height: 220px;
+            height: 220px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+
+        .stat-card {
+            padding: 0.9rem;
+        }
+
+        .stat-value {
+            font-size: 1.45rem;
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+
+        .insight-list {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
     }
 </style>
 {% endblock %}
 
+
 {% block content %}
 <div class="dashboard">
-    <!-- Summary Cards -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon bg-blue"><i class="fas fa-list-ul"></i></div>
-            <div class="stat-info">
-                <h3 id="totalTasks">0</h3>
-                <p>Total Tasks</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-info">
-                <h3 id="completedTasks">0</h3>
-                <p>Completed</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-orange"><i class="fas fa-clock"></i></div>
-            <div class="stat-info">
-                <h3 id="pendingTasks">0</h3>
-                <p>Pending</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-red"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="stat-info">
-                <h3 id="overdueTasks">0</h3>
-                <p>Overdue</p>
-            </div>
-        </div>
-    </div>
 
-    <!-- Charts Row -->
-    <div class="charts-row">
-        <div class="chart-card">
-            <h5><i class="fas fa-chart-pie"></i> Status Distribution</h5>
-            <canvas id="statusChart"></canvas>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="dashboard-header">
+
+        <div class="dashboard-title">
+            <h1>
+                <i class="fas fa-th-large me-2"></i>
+                Dashboard
+            </h1>
+
+            <p>
+                Overview of your productivity and task progress.
+            </p>
         </div>
-        <div class="chart-card">
-            <h5><i class="fas fa-chart-bar"></i> Tasks Created (Last 7 days)</h5>
-            <canvas id="dailyChart"></canvas>
+
+        <div class="dashboard-date" id="dashboardDate">
+            <i class="far fa-calendar"></i>
+            <span>Today</span>
         </div>
-        <div class="chart-card">
-            <h5><i class="fas fa-tags"></i> Priority Breakdown</h5>
-            <canvas id="priorityChart"></canvas>
+
+    </header>
+
+
+    <!-- =====================================================
+         KPI CARDS
+    ====================================================== -->
+
+    <section class="stats-row">
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Total Tasks</span>
+                <span class="stat-icon bg-blue">
+                    <i class="fas fa-layer-group"></i>
+                </span>
+            </div>
+
+            <p class="stat-value" id="totalTasks">0</p>
+
+            <div class="stat-subtitle">
+                All tasks in your workspace
+            </div>
         </div>
-    </div>
+
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Completed</span>
+                <span class="stat-icon bg-green">
+                    <i class="fas fa-check"></i>
+                </span>
+            </div>
+
+            <p class="stat-value" id="completedTasks">0</p>
+
+            <div class="stat-subtitle">
+                Successfully completed
+            </div>
+        </div>
+
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Pending</span>
+                <span class="stat-icon bg-orange">
+                    <i class="fas fa-clock"></i>
+                </span>
+            </div>
+
+            <p class="stat-value" id="pendingTasks">0</p>
+
+            <div class="stat-subtitle">
+                Tasks still in progress
+            </div>
+        </div>
+
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Overdue</span>
+                <span class="stat-icon bg-red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </span>
+            </div>
+
+            <p class="stat-value" id="overdueTasks">0</p>
+
+            <div class="stat-subtitle">
+                Need your attention
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ANALYTICS
+    ====================================================== -->
+
+    <section class="analytics-grid">
+
+        <!-- Status -->
+        <div class="chart-card chart-status">
+
+            <div class="chart-header">
+                <div class="chart-header-left">
+                    <h3>
+                        <i class="fas fa-chart-pie"></i>
+                        Task Status
+                    </h3>
+
+                    <p>Current distribution of your tasks.</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="statusChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- Daily -->
+        <div class="chart-card chart-daily">
+
+            <div class="chart-header">
+                <div class="chart-header-left">
+                    <h3>
+                        <i class="fas fa-chart-line"></i>
+                        Activity
+                    </h3>
+
+                    <p>Tasks created during the last 7 days.</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper large">
+                <canvas id="dailyChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- Priority -->
+        <div class="chart-card chart-priority">
+
+            <div class="chart-header">
+                <div class="chart-header-left">
+                    <h3>
+                        <i class="fas fa-layer-group"></i>
+                        Priority
+                    </h3>
+
+                    <p>Distribution by task priority.</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="priorityChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- Insights -->
+        <div class="chart-card chart-insight">
+
+            <div class="chart-header">
+                <div class="chart-header-left">
+                    <h3>
+                        <i class="fas fa-lightbulb"></i>
+                        Productivity Overview
+                    </h3>
+
+                    <p>A quick summary based on your current tasks.</p>
+                </div>
+            </div>
+
+            <div class="insight-content">
+
+                <div class="insight-main">
+                    <div class="insight-main-label">
+                        Completion rate
+                    </div>
+
+                    <div class="insight-main-value" id="completionRate">
+                        0%
+                    </div>
+
+                    <p class="insight-main-text" id="completionText">
+                        No tasks available yet.
+                    </p>
+                </div>
+
+
+                <div class="insight-list">
+
+                    <div class="insight-item">
+                        <div class="insight-item-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+
+                        <div>
+                            <strong id="insightCompleted">0 completed</strong>
+                            <span>Finished tasks</span>
+                        </div>
+                    </div>
+
+
+                    <div class="insight-item">
+                        <div class="insight-item-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+
+                        <div>
+                            <strong id="insightPending">0 pending</strong>
+                            <span>Tasks remaining</span>
+                        </div>
+                    </div>
+
+
+                    <div class="insight-item">
+                        <div class="insight-item-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+
+                        <div>
+                            <strong id="insightOverdue">0 overdue</strong>
+                            <span>Need attention</span>
+                        </div>
+                    </div>
+
+
+                    <div class="insight-item">
+                        <div class="insight-item-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+
+                        <div>
+                            <strong id="insightPriority">Balanced</strong>
+                            <span>Priority profile</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="dashboard-footer">
+
+        <div class="dashboard-footer-item">
+            <i class="fas fa-sync-alt"></i>
+            <span>Dashboard data updates automatically.</span>
+        </div>
+
+        <div class="dashboard-footer-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Based on your current task activity.</span>
+        </div>
+
+    </footer>
+
 </div>
-
-
-
 {% endblock %}
 
+
 {% block extra_scripts %}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script>
-    // ---------- API Endpoints (updated) ----------
+
+    /* =========================================================
+       API ENDPOINTS
+    ========================================================= */
+
     const STATUS_URL = "{% url 'api-stats-status' %}";
     const DAILY_URL = "{% url 'api-stats-daily' %}";
     const PRIORITY_URL = "{% url 'api-stats-priority' %}";
-    const TASKS_URL = "{% url 'task-list-create' %}";          // GET list + POST create
-    const TASK_DETAIL_BASE = "{% url 'task-detail' 0 %}".replace('0/', '');  // e.g., "/api/tasks/"
+    const TASKS_URL = "{% url 'task-list-create' %}";
 
-    // ---------- Fetch & update summary counts ----------
+
+    /* =========================================================
+       STATE
+    ========================================================= */
+
+    let statusChart = null;
+    let dailyChart = null;
+    let priorityChart = null;
+
+
+    /* =========================================================
+       THEME HELPERS
+    ========================================================= */
+
+    function getCSSVariable(name, fallback = "") {
+        const value = getComputedStyle(document.body)
+            .getPropertyValue(name)
+            .trim();
+
+        return value || fallback;
+    }
+
+    function getTheme() {
+
+        return {
+            text: getCSSVariable("--text", "#222"),
+            muted: getCSSVariable("--bottom-text", "#777"),
+            border: getCSSVariable(
+                "--bottom-border",
+                "rgba(0,0,0,0.08)"
+            ),
+            surface: getCSSVariable(
+                "--surface",
+                "#ffffff"
+            ),
+            primary: getCSSVariable(
+                "--primary",
+                "#5aa9e6"
+            )
+        };
+    }
+
+
+    /* =========================================================
+       DATE
+    ========================================================= */
+
+    function updateDate() {
+
+        const dateElement =
+            document.getElementById("dashboardDate");
+
+        const now = new Date();
+
+        dateElement.innerHTML = `
+            <i class="far fa-calendar"></i>
+            <span>
+                ${now.toLocaleDateString("en-GB", {
+                    weekday: "short",
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                })}
+            </span>
+        `;
+    }
+
+
+    /* =========================================================
+       SUMMARY
+    ========================================================= */
+
     async function updateSummary() {
+
         try {
-            const [statusRes, tasksRes] = await Promise.all([
-                fetch(STATUS_URL).then(r => r.json()),
-                fetch(TASKS_URL).then(r => r.json())
+
+            const [
+                statusRes,
+                tasksRes
+            ] = await Promise.all([
+                fetch(STATUS_URL),
+                fetch(TASKS_URL)
             ]);
 
-            const statusData = statusRes.data;       // array: pending, in_progress, done
-            const total = statusData.reduce((a, b) => a + b, 0);
-            const doneIdx = statusRes.labels.indexOf('Done');
-            const done = doneIdx >= 0 ? statusData[doneIdx] : 0;
-            const pending = total - done;
+            if (!statusRes.ok || !tasksRes.ok) {
+                throw new Error("Failed to load dashboard data");
+            }
 
-            const now = new Date();
-            const overdueCount = tasksRes.filter(t =>
-                t.due_date && new Date(t.due_date) < now && t.status !== 'done'
-            ).length;
+            const statusResponse =
+                await statusRes.json();
 
-            document.getElementById('totalTasks').textContent = total;
-            document.getElementById('completedTasks').textContent = done;
-            document.getElementById('pendingTasks').textContent = pending;
-            document.getElementById('overdueTasks').textContent = overdueCount;
-        } catch (err) {
-            console.error('Failed to load summary', err);
+            const tasks =
+                await tasksRes.json();
+
+            const statusData =
+                statusResponse.data;
+
+            const labels =
+                statusResponse.labels;
+
+            const total =
+                statusData.reduce(
+                    (sum, value) => sum + value,
+                    0
+                );
+
+            const doneIndex =
+                labels.indexOf("Done");
+
+            const completed =
+                doneIndex >= 0
+                    ? statusData[doneIndex]
+                    : 0;
+
+            const pending =
+                total - completed;
+
+            const now =
+                new Date();
+
+            const overdue =
+                tasks.filter(task => {
+
+                    if (
+                        !task.due_date ||
+                        task.status === "done"
+                    ) {
+                        return false;
+                    }
+
+                    return new Date(task.due_date) < now;
+                }).length;
+
+
+            /* KPI */
+
+            document.getElementById("totalTasks")
+                .textContent = total;
+
+            document.getElementById("completedTasks")
+                .textContent = completed;
+
+            document.getElementById("pendingTasks")
+                .textContent = pending;
+
+            document.getElementById("overdueTasks")
+                .textContent = overdue;
+
+
+            /* Completion */
+
+            const completionRate =
+                total > 0
+                    ? Math.round(
+                        (completed / total) * 100
+                    )
+                    : 0;
+
+            document.getElementById("completionRate")
+                .textContent = `${completionRate}%`;
+
+            document.getElementById("insightCompleted")
+                .textContent = `${completed} completed`;
+
+            document.getElementById("insightPending")
+                .textContent = `${pending} pending`;
+
+            document.getElementById("insightOverdue")
+                .textContent = `${overdue} overdue`;
+
+
+            let completionText =
+                "No tasks available yet.";
+
+            if (total > 0 && completionRate === 100) {
+
+                completionText =
+                    "Excellent. Every task is completed.";
+
+            } else if (completionRate >= 75) {
+
+                completionText =
+                    "Strong progress. You are close to clearing your workload.";
+
+            } else if (completionRate >= 50) {
+
+                completionText =
+                    "Good progress. Keep working through the remaining tasks.";
+
+            } else if (completionRate > 0) {
+
+                completionText =
+                    "You have started making progress. Focus on the highest-priority tasks first.";
+
+            } else {
+
+                completionText =
+                    "Your task list is ready. Start with the most important task.";
+            }
+
+            document.getElementById("completionText")
+                .textContent = completionText;
+
+
+            /* Priority insight */
+
+            updatePriorityInsight(tasks);
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load summary:",
+                error
+            );
         }
     }
 
 
+    /* =========================================================
+       PRIORITY INSIGHT
+    ========================================================= */
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    function updatePriorityInsight(tasks) {
+
+        const element =
+            document.getElementById("insightPriority");
+
+        if (!tasks.length) {
+            element.textContent = "No data";
+            return;
+        }
+
+        const counts = {
+            high: 0,
+            medium: 0,
+            low: 0
+        };
+
+        tasks.forEach(task => {
+
+            if (counts.hasOwnProperty(task.priority)) {
+                counts[task.priority]++;
+            }
+
+        });
+
+        if (
+            counts.high > counts.medium &&
+            counts.high > counts.low
+        ) {
+            element.textContent = "High priority";
+        }
+        else if (
+            counts.low > counts.medium &&
+            counts.low > counts.high
+        ) {
+            element.textContent = "Low priority";
+        }
+        else {
+            element.textContent = "Balanced";
+        }
     }
 
-    // ---------- Charts ----------
+
+    /* =========================================================
+       CHART DEFAULTS
+    ========================================================= */
+
+    function getChartDefaults() {
+
+        const theme =
+            getTheme();
+
+        return {
+            color: theme.text,
+
+            font: {
+                family:
+                    getComputedStyle(document.body)
+                        .fontFamily || "sans-serif"
+            },
+
+            borderColor:
+                theme.border
+        };
+    }
+
+
+    /* =========================================================
+       CHARTS
+    ========================================================= */
+
     async function renderCharts() {
+
         try {
-            const [statusData, dailyData, priorityData] = await Promise.all([
+
+            const [
+                statusData,
+                dailyData,
+                priorityData
+            ] = await Promise.all([
                 fetch(STATUS_URL).then(r => r.json()),
                 fetch(DAILY_URL).then(r => r.json()),
                 fetch(PRIORITY_URL).then(r => r.json())
             ]);
 
-            // Status doughnut
-            new Chart(document.getElementById('statusChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: statusData.labels,
-                    datasets: [{
-                        data: statusData.data,
-                        backgroundColor: ['#f1c40f', '#3498db', '#2ecc71'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
-                    }
-                }
-            });
+            const theme =
+                getTheme();
 
-            // Daily bar
-            new Chart(document.getElementById('dailyChart'), {
-                type: 'bar',
-                data: {
-                    labels: dailyData.labels,
-                    datasets: [{
-                        label: 'Tasks Created',
-                        data: dailyData.data,
-                        backgroundColor: 'rgba(78, 115, 223, 0.7)',
-                        borderColor: '#4e73df',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+            Chart.defaults.color =
+                theme.muted;
+
+            Chart.defaults.font.size =
+                11;
+
+            Chart.defaults.font.family =
+                getComputedStyle(document.body)
+                    .fontFamily || "sans-serif";
+
+
+            /* =================================================
+               DESTROY OLD CHARTS
+            ================================================= */
+
+            if (statusChart) {
+                statusChart.destroy();
+            }
+
+            if (dailyChart) {
+                dailyChart.destroy();
+            }
+
+            if (priorityChart) {
+                priorityChart.destroy();
+            }
+
+
+            /* =================================================
+               STATUS DOUGHNUT
+            ================================================= */
+
+            statusChart = new Chart(
+                document.getElementById("statusChart"),
+                {
+                    type: "doughnut",
+
+                    data: {
+                        labels: statusData.labels,
+
+                        datasets: [{
+                            data: statusData.data,
+
+                            backgroundColor: [
+                                "#f1c40f",
+                                "#3498db",
+                                "#2ecc71"
+                            ],
+
+                            borderColor:
+                                theme.surface,
+
+                            borderWidth: 3,
+
+                            hoverOffset: 5
+                        }]
                     },
-                    plugins: {
-                        legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
-                    }
-                }
-            });
 
-            // Priority doughnut
-            new Chart(document.getElementById('priorityChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: priorityData.labels,
-                    datasets: [{
-                        data: priorityData.data,
-                        backgroundColor: ['#1abc9c', '#f39c12', '#e74c3c'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text') } }
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        cutout: "70%",
+
+                        plugins: {
+
+                            legend: {
+                                position: "bottom",
+
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: "circle",
+                                    padding: 16,
+                                    color: theme.muted
+                                }
+                            },
+
+                            tooltip: {
+                                backgroundColor:
+                                    theme.surface,
+
+                                titleColor:
+                                    theme.text,
+
+                                bodyColor:
+                                    theme.muted,
+
+                                borderColor:
+                                    theme.border,
+
+                                borderWidth: 1
+                            }
+                        }
                     }
                 }
-            });
-        } catch (err) {
-            console.error('Chart loading error', err);
+            );
+
+
+            /* =================================================
+               DAILY BAR
+            ================================================= */
+
+            dailyChart = new Chart(
+                document.getElementById("dailyChart"),
+                {
+                    type: "bar",
+
+                    data: {
+                        labels: dailyData.labels,
+
+                        datasets: [{
+                            label: "Tasks created",
+
+                            data: dailyData.data,
+
+                            backgroundColor:
+                                theme.primary,
+
+                            borderRadius: 7,
+
+                            borderSkipped: false,
+
+                            maxBarThickness: 38
+                        }]
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        interaction: {
+                            intersect: false,
+                            mode: "index"
+                        },
+
+                        scales: {
+
+                            y: {
+                                beginAtZero: true,
+
+                                ticks: {
+                                    stepSize: 1,
+                                    color: theme.muted
+                                },
+
+                                grid: {
+                                    color: theme.border
+                                },
+
+                                border: {
+                                    display: false
+                                }
+                            },
+
+                            x: {
+
+                                ticks: {
+                                    color: theme.muted
+                                },
+
+                                grid: {
+                                    display: false
+                                },
+
+                                border: {
+                                    display: false
+                                }
+                            }
+                        },
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            },
+
+                            tooltip: {
+                                backgroundColor:
+                                    theme.surface,
+
+                                titleColor:
+                                    theme.text,
+
+                                bodyColor:
+                                    theme.muted,
+
+                                borderColor:
+                                    theme.border,
+
+                                borderWidth: 1,
+
+                                displayColors: false
+                            }
+                        }
+                    }
+                }
+            );
+
+
+            /* =================================================
+               PRIORITY DOUGHNUT
+            ================================================= */
+
+            priorityChart = new Chart(
+                document.getElementById("priorityChart"),
+                {
+                    type: "doughnut",
+
+                    data: {
+                        labels: priorityData.labels,
+
+                        datasets: [{
+                            data: priorityData.data,
+
+                            backgroundColor: [
+                                "#2ecc71",
+                                "#f39c12",
+                                "#e74c3c"
+                            ],
+
+                            borderColor:
+                                theme.surface,
+
+                            borderWidth: 3,
+
+                            hoverOffset: 5
+                        }]
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        cutout: "70%",
+
+                        plugins: {
+
+                            legend: {
+                                position: "bottom",
+
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: "circle",
+                                    padding: 16,
+                                    color: theme.muted
+                                }
+                            },
+
+                            tooltip: {
+                                backgroundColor:
+                                    theme.surface,
+
+                                titleColor:
+                                    theme.text,
+
+                                bodyColor:
+                                    theme.muted,
+
+                                borderColor:
+                                    theme.border,
+
+                                borderWidth: 1
+                            }
+                        }
+                    }
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Chart loading error:",
+                error
+            );
         }
     }
 
 
+    /* =========================================================
+       THEME REFRESH
+    ========================================================= */
 
-    
+    function refreshDashboardTheme() {
 
- 
+        if (statusChart || dailyChart || priorityChart) {
+            renderCharts();
+        }
+    }
 
-    // ---------- Init ----------
-    document.addEventListener('DOMContentLoaded', () => {
-        updateSummary();
-        renderCharts();
-    });
+
+    /* =========================================================
+       INITIALIZATION
+    ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            updateDate();
+            updateSummary();
+            renderCharts();
+
+        }
+    );
+
+
+    /*
+     * Re-render charts when the page theme changes.
+     *
+     * This supports applications where base.html toggles
+     * dark/light mode dynamically.
+     */
+    const themeObserver =
+        new MutationObserver(() => {
+            refreshDashboardTheme();
+        });
+
+    themeObserver.observe(
+        document.body,
+        {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"]
+        }
+    );
+
 </script>
+
 {% endblock %}

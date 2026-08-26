@@ -2,6 +2,22 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
+const fs = require('fs');
+
+// Dynamically resolve Django path based on environment
+const appDir = app.isPackaged
+  ? path.join(process.resourcesPath, 'app')
+  : path.join(__dirname, '..', 'app');
+
+// Automatically load environment variables
+const envPath = path.join(appDir, '.env');
+if (fs.existsSync(envPath)) {
+  try {
+    require('dotenv').config({ path: envPath });
+  } catch (err) {
+    console.log('dotenv package not installed, skipping automatic .env loading');
+  }
+}
 
 let mainWindow;
 let djangoProcess;
@@ -9,19 +25,17 @@ let djangoProcess;
 const DJANGO_PORT = 8080;
 const DJANGO_URL = `http://127.0.0.1:${DJANGO_PORT}`;
 
-// The workspace directory where the database and code reside
-const workspaceDir = 'C:\\Users\\AZUR\\OneDrive\\Bureau\\to-do-list';
+// Resolve Python path inside appDir
+const venvPython = path.join(appDir, 'venv', 'Scripts', 'python.exe');
+const pythonPath = fs.existsSync(venvPython) ? venvPython : 'python';
 
 function startDjango() {
-  const pythonPath = path.join(workspaceDir, 'venv', 'Scripts', 'python.exe');
-  const managePyPath = path.join(workspaceDir, 'app', 'manage.py');
-
   console.log(`Starting Django server...`);
-  console.log(`Working directory: ${path.join(workspaceDir, 'app')}`);
+  console.log(`Working directory: ${appDir}`);
   console.log(`Python interpreter: ${pythonPath}`);
 
   djangoProcess = spawn(pythonPath, ['manage.py', 'runserver', `127.0.0.1:${DJANGO_PORT}`], {
-    cwd: path.join(workspaceDir, 'app'),
+    cwd: appDir,
     env: { ...process.env, PYTHONUNBUFFERED: '1' }
   });
 
@@ -31,6 +45,10 @@ function startDjango() {
 
   djangoProcess.stderr.on('data', (data) => {
     console.error(`[Django Error] ${data.toString().trim()}`);
+  });
+
+  djangoProcess.on('error', (err) => {
+    console.error('[Django Process Error]:', err);
   });
 
   djangoProcess.on('close', (code) => {
@@ -51,13 +69,10 @@ function createMainWindow() {
     }
   });
 
-  // Remove default menu bar for a clean, app-like appearance
   mainWindow.setMenuBarVisibility(false);
 
-  // Poll the Django server URL until it responds, then load it
   const checkServer = setInterval(() => {
     http.get(DJANGO_URL, (res) => {
-      // If we get any HTTP response, the server is up
       clearInterval(checkServer);
       mainWindow.loadURL(DJANGO_URL);
     }).on('error', () => {
@@ -76,7 +91,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // Gracefully terminate the Django server when all Electron windows are closed
   if (djangoProcess) {
     console.log('Terminating Django server...');
     if (process.platform === 'win32') {

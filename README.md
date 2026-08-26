@@ -25,6 +25,8 @@ The project splits responsibility across two directories:
 1. **`app/`**: A Django 6.0 web application that exposes the backend APIs, template views, database models, export engines, and proxy configurations.
 2. **`desktop-app/`**: An Electron application wrapper that handles the local desktop window execution and launches the Python interpreter to serve the Django backend in a subprocess.
 
+The Electron wrapper spawns `python.exe` directly (no shell activation) to run `manage.py runserver`. Because of that, the Python virtual environment (`venv/`) must live **inside `desktop-app/`**, not inside `app/` — `main.js` resolves the interpreter path relative to the Electron app's own directory in dev, and relative to the packaged app's `resources` folder once built.
+
 ---
 
 ## 🚀 Getting Started
@@ -36,35 +38,34 @@ The project splits responsibility across two directories:
 
 ---
 
-### Step 1: Backend Setup (Django)
+### Step 1: Backend Dependencies
 
-1. Open your terminal and navigate to the `app` directory:
-   ```bash
-   cd app
-   ```
-2. Create and activate a Python virtual environment:
-   - **Windows (PowerShell/CMD)**:
-     ```bash
-     python -m venv venv
-     .\venv\Scripts\activate
-     ```
-   - **macOS/Linux**:
-     ```bash
-     python3 -m venv venv
-     source venv/bin/activate
-     ```
-3. Install the required Python dependencies:
-   ```bash
-   pip install django requests python-dotenv xhtml2pdf
-   ```
-4. Run database migrations to set up the SQLite database:
-   ```bash
-   python manage.py migrate
-   ```
-5. *(Optional)* Start the Django development server standalone:
-   ```bash
-   python manage.py runserver 8080
-   ```
+The virtual environment lives in `desktop-app/`, but the Django project itself still lives in `app/`. Create the venv from inside `desktop-app/`, then use it to install dependencies and run backend setup commands against `app/`:
+
+- **Windows (PowerShell/CMD)**:
+  ```bash
+  cd desktop-app
+  python -m venv venv
+  .\venv\Scripts\activate
+  ```
+- **macOS/Linux**:
+  ```bash
+  cd desktop-app
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
+
+With the venv active, install dependencies and run migrations against the Django project:
+```bash
+pip install django requests python-dotenv xhtml2pdf
+cd ../app
+python manage.py migrate
+```
+
+*(Optional)* Start the Django development server standalone:
+```bash
+python manage.py runserver 8080
+```
 
 ---
 
@@ -85,17 +86,13 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 
 1. Navigate to the `desktop-app` directory:
    ```bash
-   cd ../desktop-app
+   cd desktop-app
    ```
 2. Install the Node dependencies:
    ```bash
    npm install
    ```
-3. **Important Configuration:** Open `desktop-app/main.js` and edit the `workspaceDir` path (around line 13) to point to your absolute project root folder:
-   ```javascript
-   // Change this to the absolute path of this project on your system
-   const workspaceDir = 'C:\\path\\to\\TO-DO-LIST-main';
-   ```
+3. Confirm `desktop-app/venv/Scripts/python.exe` exists (from Step 1) — `main.js` expects the interpreter there and needs no manual path configuration.
 4. Launch the application:
    ```bash
    npm start
@@ -117,6 +114,7 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 │   └── manage.py               # Django management CLI script
 │
 ├── desktop-app/                # Electron Desktop Wrapper
+│   ├── venv/                   # Python virtual environment (created locally, not committed)
 │   ├── icon.ico / icon.png     # Application icons
 │   ├── main.js                 # Subprocess spawner & Electron Window setup
 │   ├── package.json            # Electron dependency configurations
@@ -130,17 +128,20 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 
 ## 💾 Exporting & Build
 
-To compile a native distribution of the desktop application, run the build tools from the `desktop-app` folder:
-- **Build Installer**:
-  ```bash
-  npm run dist
-  ```
-- **Pack directory**:
+Run the build tools from the `desktop-app` folder. `package.json` bundles `app/` and `venv/` as `extraResources`, copied as real files alongside the executable rather than zipped into `app.asar` — this is required because Node's `spawn()` cannot execute a binary from inside an asar archive.
+
+- **Pack directory** (fast, no installer — use this to test packaging first):
   ```bash
   npm run pack
   ```
+  Then run the executable directly from `dist/win-unpacked/` and confirm `resources/venv/Scripts/python.exe` and `resources/app/manage.py` both exist and the app launches without an ENOENT error.
 
-This packages the app into the `dist/` directory inside `desktop-app/` using `electron-builder`.
+- **Build Installer** (once `pack` works cleanly):
+  ```bash
+  npm run dist
+  ```
+
+Both commands output into the `dist/` directory inside `desktop-app/`.
 
 ---
 

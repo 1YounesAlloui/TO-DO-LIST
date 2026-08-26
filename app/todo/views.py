@@ -123,18 +123,8 @@ def get_model_registry():
     """Returns models available for each provider."""
     return {
         "groq": [
-            {"id": "llama-3.3-70b-versatile", "label": "Llama 3.3 70B (Groq)"},
-            {"id": "llama-3.1-8b-instant", "label": "Llama 3.1 8B Instant"},
-            {"id": "mixtral-8x7b-32768", "label": "Mixtral 8x7B (Groq)"},
-            {"id": "gemma2-9b-it", "label": "Gemma 2 9B IT"},
+            {"id": "groq/compound-mini", "label": "Compound mini"},
         ],
-        "openrouter": [
-            {"id": "openai/gpt-4o-mini", "label": "GPT-4o Mini"},
-            {"id": "google/gemini-1.5-pro", "label": "Gemini 1.5 Pro"},
-            {"id": "google/gemini-1.5-flash", "label": "Gemini 1.5 Flash"},
-            {"id": "deepseek/deepseek-chat", "label": "DeepSeek V3"},
-            {"id": "meta-llama/llama-3.3-70b-instruct", "label": "Llama 3.3 70B (OpenRouter)"},
-        ]
     }
 
 @csrf_exempt
@@ -170,17 +160,6 @@ def api_ai_chat(request):
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
-            }
-        elif provider == 'openrouter':
-            api_key = os.getenv("OPENROUTER_API_KEY")
-            if not api_key:
-                raise ValueError("OPENROUTER_API_KEY not set.")
-            url = "https://openrouter.ai/api/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "Workspace AI"
             }
         else:
             return JsonResponse({'error': 'Invalid provider'}, status=400)

@@ -9,7 +9,7 @@
     :root {
         --canvas-shadow: var(--shadow);
         --app-font: 'Inter', system-ui, -apple-system, sans-serif;
-        --sidebar-width: 400px;
+        --sidebar-width: 420px;
     }
     body {
         background: var(--bg);
@@ -75,6 +75,10 @@
         display: none;
         align-items: center;
         gap: 20px;
+        overflow-x: auto;          /* Horizontal scroll to see all tools */
+        flex-wrap: nowrap;         /* Prevent wrapping */
+        scrollbar-width: thin;     /* Firefox */
+        scrollbar-color: var(--primary) transparent;
     }
     .ribbon-panel-body.active { display: flex; animation: slideUpFade 0.3s ease; }
     .ribbon-tool-group {
@@ -84,6 +88,7 @@
         border-right: 1px solid var(--glass-border);
         padding-right: 16px;
         height: 60px;
+        flex-shrink: 0;            /* Prevent shrinking */
     }
     .ribbon-btn {
         background: transparent;
@@ -190,7 +195,7 @@
         line-height: 1.6;
     }
 
-    /* AI Sidebar */
+    /* AI Sidebar - Improved */
     .ai-collapsible-sidebar {
         width: var(--sidebar-width);
         display: flex;
@@ -201,6 +206,9 @@
         bottom: 0;
         z-index: 40;
         transition: right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        background: var(--surface);
+        backdrop-filter: blur(16px);
+        border-left: 1px solid var(--glass-border);
     }
     .ai-collapsible-sidebar.open { right: 0; }
     .ai-sidebar-toggle-btn {
@@ -246,9 +254,28 @@
         100% { transform: translateY(20px) scale(1.15); }
     }
     .ai-panel-header {
-        padding: var(--space-4) var(--space-4);
+        padding: var(--space-4);
         border-bottom: 1px solid var(--glass-border);
         background: rgba(0,0,0,0.1);
+    }
+    .ai-panel-header h6 {
+        font-size: 1rem;
+        margin: 0;
+        color: var(--primary);
+    }
+    .ai-model-selector {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .ai-model-selector select {
+        flex: 1;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--glass-border);
+        color: var(--text);
+        padding: 6px 8px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
     }
     .ai-chat-scroller {
         flex: 1;
@@ -264,35 +291,90 @@
         padding: var(--space-3) var(--space-4);
         border-radius: var(--radius-lg);
         font-size: 14px;
-        line-height: 1.5;
+        line-height: 1.6;
         position: relative;
         animation: bubblePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         word-wrap: break-word;
         white-space: pre-wrap;
+        margin-bottom: var(--space-2);
     }
     @keyframes bubblePop {
         0% { transform: scale(0.9); opacity: 0; }
         100% { transform: scale(1); opacity: 1; }
     }
     .chat-bubble.assistant {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.08);
         border: 1px solid var(--glass-border);
-        color: var(--text);
+        color: #212529; /* Dark text for contrast and copying */
         align-self: flex-start;
         border-bottom-left-radius: 4px;
     }
     .chat-bubble.user {
         background: var(--primary);
-        color: white;
+        color: #ffffff; /* White text on primary */
         align-self: flex-end;
         border-bottom-right-radius: 4px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
+    .chat-bubble-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+        justify-content: flex-end;
+    }
+    .chat-bubble-actions button {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 12px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    .chat-bubble-actions button:hover { opacity: 1; }
     .ai-panel-footer {
         padding: var(--space-3) var(--space-4) var(--space-5) var(--space-4);
         border-top: 1px solid var(--glass-border);
         background: rgba(0,0,0,0.2);
         z-index: 2;
+    }
+    .quick-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .quick-action-btn {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .quick-action-btn:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-1px);
+    }
+    .input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .input-group input {
+        flex: 1;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--glass-border);
+        color: var(--text);
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+    }
+    .input-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
     }
 
     /* Drawing Studio Modal */
@@ -371,6 +453,25 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
+    /* Guide Modal */
+    .guide-content {
+        padding: var(--space-4);
+        line-height: 1.7;
+        font-size: 14px;
+        color: var(--text);
+    }
+    .guide-content h5 {
+        color: var(--primary);
+        margin-top: var(--space-3);
+        margin-bottom: var(--space-1);
+    }
+    .guide-content ul {
+        padding-left: 20px;
+    }
+    .guide-content li {
+        margin-bottom: var(--space-1);
+    }
+
     /* Skeleton Loader */
     @keyframes skeleton-pulse {
         0% { opacity: 1; }
@@ -412,7 +513,11 @@
             <i class="fas fa-bars-staggered" style="margin-right: 8px;"></i>
             <strong>Workspace Suite</strong> — {{ task.title }}
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <!-- Guide button -->
+            <button class="btn btn-sm btn-light" style="background: rgba(255,255,255,0.2); color:white; border:none; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;" onclick="openGuideModal()" title="Help & Guide">
+                <i class="fas fa-question"></i>
+            </button>
             <button class="btn btn-sm btn-light" style="background: rgba(255,255,255,0.2); color:white; border:none;" onclick="exportWord()"><i class="fas fa-file-word"></i> Word Export</button>
             <button class="btn btn-sm btn-light" style="background: rgba(255,255,255,0.2); color:white; border:none;" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF Asset</button>
             <button class="btn btn-sm btn-success" style="background: #107c41; border:none;" id="saveBtn" onclick="saveDocument()"><i class="fas fa-cloud-arrow-up"></i> Sync Cloud</button>
@@ -426,6 +531,7 @@
             <div class="ribbon-tab" onclick="switchRibbonTab('web-layouts-panel', this)">Web Layout Engine</div>
         </div>
 
+        <!-- Home Panel -->
         <div class="ribbon-panel-body glass-panel active" id="home-panel">
             <div class="ribbon-tool-group">
                 <select class="ribbon-dropdown" id="headingMenu" onchange="executeCKCommand('heading', {value: this.value})">
@@ -439,8 +545,9 @@
                 <button class="ribbon-btn" onclick="executeCKCommand('bold')"><i class="fas fa-bold"></i><span>Bold</span></button>
                 <button class="ribbon-btn" onclick="executeCKCommand('italic')"><i class="fas fa-italic"></i><span>Italic</span></button>
                 <button class="ribbon-btn" onclick="executeCKCommand('underline')"><i class="fas fa-underline"></i><span>Underline</span></button>
+                <button class="ribbon-btn" onclick="executeCKCommand('strikethrough')"><i class="fas fa-strikethrough"></i><span>Strike</span></button>
             </div>
-            <!-- NEW: Font & Highlight Color Pickers -->
+            <!-- Font & Highlight Color Pickers -->
             <div class="ribbon-tool-group">
                 <div class="ribbon-btn" style="flex-direction: row; gap: 4px;">
                     <label for="fontColorPicker" class="mb-0 small">Font</label>
@@ -455,13 +562,25 @@
                         onchange="executeCKCommand('fontBackgroundColor', {value: this.value})">
                 </div>
             </div>
-            <!-- existing tool group (quote, code) -->
+            <!-- Alignment & Lists -->
+            <div class="ribbon-tool-group">
+                <button class="ribbon-btn" onclick="executeCKCommand('alignment', {value: 'left'})"><i class="fas fa-align-left"></i><span>Left</span></button>
+                <button class="ribbon-btn" onclick="executeCKCommand('alignment', {value: 'center'})"><i class="fas fa-align-center"></i><span>Center</span></button>
+                <button class="ribbon-btn" onclick="executeCKCommand('alignment', {value: 'right'})"><i class="fas fa-align-right"></i><span>Right</span></button>
+                <button class="ribbon-btn" onclick="executeCKCommand('alignment', {value: 'justify'})"><i class="fas fa-align-justify"></i><span>Justify</span></button>
+            </div>
+            <div class="ribbon-tool-group">
+                <button class="ribbon-btn" onclick="executeCKCommand('bulletedList')"><i class="fas fa-list-ul"></i><span>Bullets</span></button>
+                <button class="ribbon-btn" onclick="executeCKCommand('numberedList')"><i class="fas fa-list-ol"></i><span>Numbering</span></button>
+            </div>
+            <!-- Quote & Code -->
             <div class="ribbon-tool-group">
                 <button class="ribbon-btn" onclick="executeCKCommand('blockQuote')"><i class="fas fa-quote-right"></i><span>Quote</span></button>
                 <button class="ribbon-btn" onclick="executeCKCommand('codeBlock')"><i class="fas fa-code"></i><span>Code</span></button>
             </div>
         </div>
 
+        <!-- Insert Elements Panel -->
         <div class="ribbon-panel-body glass-panel" id="insert-panel">
             <div class="ribbon-tool-group">
                 <button class="ribbon-btn" onclick="executeCKCommand('insertTable', {config: {rows: 3, columns: 3}})"><i class="fas fa-table"></i><span>Grid Table</span></button>
@@ -470,6 +589,7 @@
             </div>
         </div>
 
+        <!-- Web Layout Engine Panel -->
         <div class="ribbon-panel-body glass-panel" id="web-layouts-panel">
             <div class="ribbon-tool-group">
                 <button class="ribbon-btn" onclick="openDrawingModal('header-sidebar-footer')">
@@ -493,6 +613,10 @@
                 <button class="ribbon-btn" onclick="openDrawingModal('pricing-table')">
                     <i class="fas fa-tags" style="color:var(--primary);"></i>
                     <span>Pricing Table</span>
+                </button>
+                <button class="ribbon-btn" onclick="openDrawingModal('mobile-app')">
+                    <i class="fas fa-mobile-alt" style="color:var(--primary);"></i>
+                    <span>Mobile App</span>
                 </button>
             </div>
         </div>
@@ -522,36 +646,39 @@
             <div class="antigravity-wrapper">
                 <div class="antigravity-orb-bg"></div>
                 <div class="ai-panel-header">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-microchip"></i> Workspace CoPilot</h6>
-                        <small class="text-muted">AI‑Assitant</small>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="m-0 font-weight-bold text-gold"><i class="fas fa-robot"></i> Workspace AI-assistant</h6>   
                     </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <select class="form-select form-select-sm" id="aiProviderDropdown" onchange="syncAiModelOptions()">
-                                <option value="groq">Groq System</option>
-                                <option value="openrouter">OpenRouter</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <select class="form-select form-select-sm" id="aiModelDropdown"></select>
-                        </div>
+                    <!-- AI Model Selector (Added to fix null reference) -->
+                    <div class="ai-model-selector">
+                        <select id="aiProviderDropdown" onchange="syncAiModelOptions()">
+                            <option value="groq" selected>Groq</option>
+                        </select>
+                        <select id="aiModelDropdown">
+                            <!-- Populated by syncAiModelOptions() -->
+                        </select>
                     </div>
                 </div>
 
                 <div class="ai-chat-scroller" id="sidebarChatBox">
-                    <div class="chat-bubble assistant">Hello! I’m your workspace assistant. Select text or ask me to summarize, humanize, or generate professional content.</div>
+                    <div class="chat-bubble assistant">
+Hello! I’m your workspace assistant. Select text or ask me to summarize, humanize, or generate professional content.
+                    </div>
                 </div>
 
                 <div class="ai-panel-footer">
-                    <div class="d-flex gap-2 mb-3">
-                        <button class="btn btn-sm btn-outline-primary flex-fill" onclick="triggerTextTransformation('summarize')" style="font-size:0.8rem;"><i class="fas fa-compress"></i> Summarize</button>
-                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="triggerTextTransformation('humanize')" style="font-size:0.8rem;"><i class="fas fa-feather"></i> Humanize</button>
-                        <button class="btn btn-sm btn-outline-danger flex-fill" onclick="clearAiChat()" style="font-size:0.8rem;"><i class="fas fa-trash"></i> Clear</button>
+                    <div class="quick-actions-row">
+                        <button class="quick-action-btn" onclick="quickAction('summarize')"><i class="fas fa-compress"></i> Summarize</button>
+                        <button class="quick-action-btn" onclick="quickAction('humanize')"><i class="fas fa-feather"></i> Humanize</button>
+                        <button class="quick-action-btn" onclick="quickAction('grammar')"><i class="fas fa-check-double"></i> Fix Grammar</button>
+                        <button class="quick-action-btn" onclick="quickAction('ideas')"><i class="fas fa-lightbulb"></i>Ideas</button>
                     </div>
-                    <div class="input-group input-group-sm">
-                        <input type="text" id="aiSidebarInputField" class="form-control" placeholder="Ask something professional...">
-                        <button class="btn btn-primary" onclick="submitCustomChatPrompt()"><i class="fas fa-paper-plane"></i></button>
+                    <div class="input-group">
+                        <input type="text" id="aiSidebarInputField"  placeholder="Ask something professional...">
+                        <button class="btn btn-primary" onclick="submitCustomChatPrompt()" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="quick-action-btn" onclick="clearAiChat()"><i class="fas fa-trash"></i> Clear Chat</button>
                     </div>
                 </div>
             </div>
@@ -616,6 +743,40 @@
     </div>
 </div>
 
+<!-- Guide Modal -->
+<div class="modal-overlay" id="guideModalWrapper">
+    <div class="modal-window" style="width: 600px; max-width: 90vw;">
+        <div class="modal-head">
+            <span><i class="fas fa-question-circle"></i> Workspace Guide</span>
+            <button onclick="closeGuideModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="guide-content">
+            <h5>📝 Document Editing</h5>
+            <ul>
+                <li>Use the <strong>Home</strong> tab for text formatting: headings, bold, italic, alignment, lists, and colors.</li>
+                <li>Click on the page thumbnails on the left to switch pages. Use the <i class="fas fa-plus"></i> button to add new pages.</li>
+                <li>Highlight text and use the <strong>AI Copilot</strong> sidebar (right) to summarize, humanize, or ask questions.</li>
+            </ul>
+            <h5>🎨 Drawing Studio</h5>
+            <ul>
+                <li>Access from the <strong>Insert Elements</strong> tab or the <strong>Web Layout Engine</strong> tab.</li>
+                <li>Draw freehand, shapes, and insert text. Use the toolbar on the left and the color pickers below.</li>
+                <li>Once satisfied, click <strong>Embed into Document</strong> to insert your graphic.</li>
+            </ul>
+            <h5>🌐 Web Layout Engine</h5>
+            <ul>
+                <li>Quickly generate wireframe blocks (header, sidebar, hero, mobile app, etc.) as vector graphics.</li>
+                <li>These are perfect for planning web page structures within your document.</li>
+            </ul>
+            <h5>💾 Saving & Export</h5>
+            <ul>
+                <li>Click <strong>Sync Cloud</strong> to save your document to the server.</li>
+                <li>Use <strong>Word Export</strong> or <strong>PDF Asset</strong> to download the entire document.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <canvas id="workspaceBgCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none;"></canvas>
 <input type="file" id="hiddenSystemFilePicker" accept="image/*" style="display: none;" onchange="handleSystemFileImageUpload(event)">
 {% endblock %}
@@ -655,17 +816,8 @@
 
     const modelsMatrix = {
         groq: [
-            { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
-            { id: 'llama3-8b-8192', label: 'Llama 3 8B' },
-            { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' }
+            { id: 'groq/compound-mini', label: 'Compound mini' },
         ],
-        openrouter: [
-            { id: 'openai/gpt-4o-mini', label: 'GPT-4o Mini' },
-            { id: 'google/gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-            { id: 'google/gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-            { id: 'deepseek/deepseek-chat', label: 'DeepSeek V3' },
-            { id: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B' }
-        ]
     };
 
     // ---------- INIT ----------
@@ -681,9 +833,25 @@
         document.getElementById('aiSidebarInputField').addEventListener('keypress', function(e){
             if(e.key === 'Enter') submitCustomChatPrompt();
         });
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+        });
     }
 
-    // ---------- AI SIDEBAR ----------
+    // ---------- GUIDE MODAL ----------
+    function openGuideModal() {
+        document.getElementById('guideModalWrapper').style.display = 'flex';
+    }
+    function closeGuideModal() {
+        document.getElementById('guideModalWrapper').style.display = 'none';
+    }
+
+    // ---------- AI SIDEBAR (Improved) ----------
     function syncAiModelOptions() {
         const provider = document.getElementById('aiProviderDropdown').value;
         const modelSelect = document.getElementById('aiModelDropdown');
@@ -706,8 +874,52 @@
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble ${sender === 'user' ? 'user' : 'assistant'}`;
         bubble.textContent = messageText;
+        
+        // Add action buttons for assistant messages
+        if (sender === 'assistant') {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'chat-bubble-actions';
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            copyBtn.title = 'Copy as plain text';
+            copyBtn.onclick = function() { copyTextToClipboard(messageText); };
+            
+            const insertBtn = document.createElement('button');
+            insertBtn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> Insert';
+            insertBtn.title = 'Insert into document';
+            insertBtn.onclick = function() { insertTextIntoEditor(messageText); };
+            
+            actionsDiv.appendChild(copyBtn);
+            actionsDiv.appendChild(insertBtn);
+            bubble.appendChild(actionsDiv);
+        }
+        
         box.appendChild(bubble);
         box.scrollTop = box.scrollHeight;
+    }
+    function copyTextToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            // Fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('Copied to clipboard!');
+        });
+    }
+    function insertTextIntoEditor(text) {
+        if (!globalCkEditorInstance) return;
+        // Insert as plain text (black) at cursor position
+        const viewFragment = globalCkEditorInstance.data.processor.toView(text);
+        const modelFragment = globalCkEditorInstance.data.toModel(viewFragment);
+        globalCkEditorInstance.model.insertContent(modelFragment);
+        globalCkEditorInstance.editing.view.focus();
     }
     function getSelectedEditorContext() {
         if (!globalCkEditorInstance) return '';
@@ -720,12 +932,19 @@
         }
         return text;
     }
-    function triggerTextTransformation(modeKey) {
+    function quickAction(modeKey) {
         const selectedText = getSelectedEditorContext();
-        if(!selectedText) { alert("Please highlight text in the editor first."); return; }
+        if(!selectedText && (modeKey === 'summarize' || modeKey === 'humanize' || modeKey === 'grammar')) {
+            alert("Please highlight text in the editor first.");
+            return;
+        }
         if(!document.getElementById('rightAiSidebar').classList.contains('open')) toggleAiSidebar();
-        insertMessageIntoSidebarBox('user', `[${modeKey}] request: "${selectedText.substring(0,80)}…"`);
-        dispatchPromptToEndpoint(modeKey, selectedText);
+        let promptText = selectedText;
+        if(!promptText && modeKey === 'ideas') {
+            promptText = "Generate ideas for the current document.";
+        }
+        insertMessageIntoSidebarBox('user', `[${modeKey}] request: "${promptText.substring(0,80)}…"`);
+        dispatchPromptToEndpoint(modeKey, promptText);
     }
     function clearAiChat() {
         const box = document.getElementById('sidebarChatBox');
@@ -762,7 +981,7 @@
         .then(res => res.json())
         .then(data => {
             const box = document.getElementById('sidebarChatBox');
-            if(box.lastChild) box.removeChild(box.lastChild);
+            if(box.lastChild && box.lastChild.classList.contains('skeleton-bubble')) box.removeChild(box.lastChild);
             if(data.reply) {
                 insertMessageIntoSidebarBox('assistant', data.reply);
             } else {
@@ -771,7 +990,7 @@
         })
         .catch(() => {
             const box = document.getElementById('sidebarChatBox');
-            if(box.lastChild) box.removeChild(box.lastChild);
+            if(box.lastChild && box.lastChild.classList.contains('skeleton-bubble')) box.removeChild(box.lastChild);
             insertMessageIntoSidebarBox('assistant', 'Network error.');
         });
     }
@@ -796,11 +1015,28 @@
         DecoupledEditor
             .create(document.querySelector('#editorSpace'), {
                 alignment: { options: ['left', 'center', 'right', 'justify'] },
-                toolbar: [ 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'fontColor', 'fontBackgroundColor', '|', 'alignment', '|', 'insertTable', 'bulletedList', 'numberedList' ]
+                toolbar: [ 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'fontColor', 'fontBackgroundColor', '|', 'alignment', '|', 'insertTable', 'bulletedList', 'numberedList' ],
+                // Force paste as plain text to avoid color issues
+                pasteAsPlainText: true,
+                // Additional paste handling
+                clipboard: {
+                    // Optional: can also add custom paste listener, but pasteAsPlainText should suffice
+                }
             })
             .then(editor => {
                 globalCkEditorInstance = editor;
                 globalCkEditorInstance.setData(initialHtml);
+                
+                // Override paste to ensure plain text (belt and suspenders)
+                editor.plugins.get('Clipboard').on('inputTransformation', (evt, data) => {
+                    // Convert content to plain text
+                    const text = data.content;
+                    if (text && text.getText) {
+                        const plainText = text.getText();
+                        const viewFragment = editor.data.processor.toView(plainText);
+                        data.content = editor.data.toModel(viewFragment);
+                    }
+                });
             })
             .catch(err => console.error("CKEditor init failed:", err));
     }
@@ -1082,6 +1318,26 @@
             block(570,30,260,350,'[ Grid 3 ]');
         } else if (key === 'hero-wireframe') {
             block(20,40,810,320,'[ Hero Section ]');
+        } else if (key === 'dashboard-grid') {
+            block(20,20,250,150,'[ Card 1 ]');
+            block(285,20,250,150,'[ Card 2 ]');
+            block(550,20,280,150,'[ Card 3 ]');
+            block(20,185,250,150,'[ Card 4 ]');
+            block(285,185,250,150,'[ Card 5 ]');
+            block(550,185,280,150,'[ Card 6 ]');
+            block(20,350,810,40,'[ Footer ]');
+        } else if (key === 'pricing-table') {
+            block(50,50,230,260,'[ Basic ]');
+            block(305,50,230,260,'[ Pro ]');
+            block(560,50,230,260,'[ Enterprise ]');
+        } else if (key === 'mobile-app') {
+            // Mobile app wireframe: a phone screen outline with typical mobile layout
+            block(350,20,140,30,'[ Status Bar ]');
+            block(350,55,140,50,'[ App Bar ]');
+            block(350,110,140,120,'[ Content Area ]');
+            block(350,235,140,30,'[ Tab 1 ]');
+            block(350,270,140,30,'[ Tab 2 ]');
+            block(350,305,140,30,'[ Tab 3 ]');
         }
         canvas.renderAll();
     }
@@ -1236,7 +1492,7 @@
 
         // Delete active object with Backspace or Delete
         window.addEventListener('keydown', function(e) {
-            if (!document.getElementById('drawingModal').classList.contains('show')) return;
+            if (!document.getElementById('drawModalWrapper').classList.contains('show')) return;
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 const activeObj = globalFabricCanvasInstance.getActiveObject();
                 if (!activeObj) return;
